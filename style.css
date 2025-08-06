@@ -1,0 +1,167 @@
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 400px;
+            width: 100%;
+            
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-weight: 300;
+            font-size: 2.5rem;
+        }
+
+        .display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .display-content {
+            color: white;
+            font-size: 2rem;
+            font-weight: 300;
+            text-align: right;
+            word-break: break-all;
+            line-height: 1.2;
+        }
+
+        .history {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .history h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .history-item {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        button {
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .operator {
+            background: rgba(255, 107, 107, 0.3) !important;
+        }
+
+        .operator:hover {
+            background: rgba(255, 107, 107, 0.5) !important;
+        }
+
+        .equals {
+            background: rgba(72, 187, 120, 0.3) !important;
+        }
+
+        .equals:hover {
+            background: rgba(72, 187, 120, 0.5) !important;
+        }
+
+        .clear {
+            background: rgba(255, 159, 67, 0.3) !important;
+        }
+
+        .clear:hover {
+            background: rgba(255, 159, 67, 0.5) !important;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+        }
+
+        .online {
+            color: rgba(72, 187, 120, 0.8);
+        }
+
+        .offline {
+            color: rgba(255, 107, 107, 0.8);
+        }
+
+        @media (max-width: 480px) {
+            .calculator-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            button {
+                padding: 15px;
+                font-size: 1rem;
+            }
+            
+            .display-content {
+                font-size: 1.5rem;
+            }
+        }
+   

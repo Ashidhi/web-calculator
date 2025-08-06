@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full-Stack Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="calculator-container">
+        <h1>Calculator</h1>
+        
+        <div class="display">
+            <div class="display-content" id="display">0</div>
+        </div>
+
+        <div class="history">
+            <h3>History</h3>
+            <div id="history-list"></div>
+        </div>
+
+        <div class="buttons">
+            <button class="clear" onclick="clearDisplay()">C</button>
+            <button class="clear" onclick="clearEntry()">CE</button>
+            <button class="operator" onclick="inputOperator('/')" title="Divide">÷</button>
+            <button class="operator" onclick="inputOperator('*')" title="Multiply">×</button>
+            
+            <button onclick="inputNumber('7')">7</button>
+            <button onclick="inputNumber('8')">8</button>
+            <button onclick="inputNumber('9')">9</button>
+            <button class="operator" onclick="inputOperator('-')" title="Subtract">-</button>
+            
+            <button onclick="inputNumber('4')">4</button>
+            <button onclick="inputNumber('5')">5</button>
+            <button onclick="inputNumber('6')">6</button>
+            <button class="operator" onclick="inputOperator('+')" title="Add">+</button>
+            
+            <button onclick="inputNumber('1')">1</button>
+            <button onclick="inputNumber('2')">2</button>
+            <button onclick="inputNumber('3')">3</button>
+            <button class="equals" onclick="calculate()" rowspan="2" title="Equals" style="grid-row: span 2;">=</button>
+            
+            <button onclick="inputNumber('0')" style="grid-column: span 2;">0</button>
+            <button onclick="inputNumber('.')">.</button>
+        </div>
+
+        <div class="status">
+            <span id="connection-status" class="online">Backend Connected</span>
+        </div>
+    </div>
+
+    <script>
+        // Frontend State Management
+        let currentDisplay = '0';
+        let previousValue = null;
+        let currentOperator = null;
+        let waitingForNewNumber = false;
+        let calculationHistory = [];
+
+        // DOM Elements
+        const displayElement = document.getElementById('display');
+        const historyElement = document.getElementById('history-list');
+        const statusElement = document.getElementById('connection-status');
+
+        // Backend API Simulation
+        class CalculatorAPI {
+            constructor() {
+                this.isOnline = true;
+                this.simulateNetworkDelay = true;
+            }
+
+            async calculate(expression) {
+                // Simulate network delay
+                if (this.simulateNetworkDelay) {
+                    await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+                }
+
+                // Simulate occasional network issues
+                if (Math.random() < 0.05) {
+                    throw new Error('Network error');
+                }
+
+                try {
+                    // Parse and calculate the expression safely
+                    const result = this.evaluateExpression(expression);
+                    
+                    // Log calculation on "server"
+                    this.logCalculation(expression, result);
+                    
+                    return {
+                        success: true,
+                        result: result,
+                        timestamp: new Date().toISOString()
+                    };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message,
+                        timestamp: new Date().toISOString()
+                    };
+                }
+            }
+
+            evaluateExpression(expression) {
+                // Safe evaluation of mathematical expressions
+                const sanitized = expression.replace(/[^0-9+\-*/().\s]/g, '');
+                
+                if (!sanitized) {
+                    throw new Error('Invalid expression');
+                }
+
+                // Use Function constructor for safe evaluation
+                try {
+                    const result = Function('"use strict"; return (' + sanitized + ')')();
+                    
+                    if (isNaN(result) || !isFinite(result)) {
+                        throw new Error('Invalid calculation');
+                    }
+                    
+                    return result;
+                } catch (error) {
+                    throw new Error('Calculation error');
+                }
+            }
+
+            logCalculation(expression, result) {
+                // Simulate server-side logging
+                console.log(`[SERVER] ${new Date().toISOString()}: ${expression} = ${result}`);
+            }
+
+            async getHistory() {
+                await new Promise(resolve => setTimeout(resolve, 50));
+                return calculationHistory.slice(-10); // Return last 10 calculations
+            }
+        }
+
+        const api = new CalculatorAPI();
+
+        // Frontend Functions
+        function updateDisplay() {
+            displayElement.textContent = currentDisplay;
+        }
+
+        function updateConnectionStatus(online) {
+            statusElement.textContent = online ? 'Backend Connected' : 'Offline Mode';
+            statusElement.className = online ? 'online' : 'offline';
+        }
+
+        function inputNumber(num) {
+            if (waitingForNewNumber) {
+                currentDisplay = num;
+                waitingForNewNumber = false;
+            } else {
+                if (currentDisplay === '0') {
+                    currentDisplay = num;
+                } else {
+                    currentDisplay += num;
+                }
+            }
+            updateDisplay();
+        }
+
+        function inputOperator(operator) {
+            if (currentOperator && !waitingForNewNumber) {
+                calculate();
+            }
+            
+            previousValue = parseFloat(currentDisplay);
+            currentOperator = operator;
+            waitingForNewNumber = true;
+        }
+
+        async function calculate() {
+            if (currentOperator && previousValue !== null && !waitingForNewNumber) {
+                const expression = `${previousValue} ${currentOperator} ${currentDisplay}`;
+                
+                try {
+                    updateConnectionStatus(true);
+                    const response = await api.calculate(expression);
+                    
+                    if (response.success) {
+                        const result = response.result;
+                        
+                        // Add to history
+                        const historyItem = {
+                            expression: expression,
+                            result: result,
+                            timestamp: response.timestamp
+                        };
+                        
+                        calculationHistory.push(historyItem);
+                        updateHistory();
+                        
+                        // Update display
+                        currentDisplay = result.toString();
+                        updateDisplay();
+                        
+                        // Reset state
+                        currentOperator = null;
+                        previousValue = null;
+                        waitingForNewNumber = true;
+                        
+                    } else {
+                        currentDisplay = 'Error';
+                        updateDisplay();
+                        setTimeout(() => {
+                            currentDisplay = '0';
+                            updateDisplay();
+                        }, 2000);
+                    }
+                } catch (error) {
+                    updateConnectionStatus(false);
+                    // Fallback to client-side calculation
+                    try {
+                        const result = api.evaluateExpression(expression);
+                        currentDisplay = result.toString();
+                        updateDisplay();
+                        
+                        currentOperator = null;
+                        previousValue = null;
+                        waitingForNewNumber = true;
+                    } catch (fallbackError) {
+                        currentDisplay = 'Error';
+                        updateDisplay();
+                        setTimeout(() => {
+                            currentDisplay = '0';
+                            updateDisplay();
+                        }, 2000);
+                    }
+                }
+            }
+        }
+
+        function clearDisplay() {
+            currentDisplay = '0';
+            previousValue = null;
+            currentOperator = null;
+            waitingForNewNumber = false;
+            updateDisplay();
+        }
+
+        function clearEntry() {
+            currentDisplay = '0';
+            updateDisplay();
+        }
+
+        function updateHistory() {
+            const recentHistory = calculationHistory.slice(-5);
+            historyElement.innerHTML = '';
+            
+            recentHistory.reverse().forEach(item => {
+                const historyDiv = document.createElement('div');
+                historyDiv.className = 'history-item';
+                historyDiv.textContent = `${item.expression} = ${item.result}`;
+                historyElement.appendChild(historyDiv);
+            });
+            
+            if (recentHistory.length === 0) {
+                historyElement.innerHTML = '<div style="color: rgba(255,255,255,0.5);">No calculations yet</div>';
+            }
+        }
+
+        // Keyboard Support
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                inputNumber(key);
+            } else if (key === '.') {
+                inputNumber('.');
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                inputOperator(key);
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calculate();
+            } else if (key === 'Escape' || key.toLowerCase() === 'c') {
+                clearDisplay();
+            } else if (key === 'Backspace') {
+                clearEntry();
+            }
+        });
+
+        // Initialize
+        updateDisplay();
+        updateHistory();
+        updateConnectionStatus(true);
+
+        // Simulate periodic connection checks
+        setInterval(() => {
+            const isOnline = Math.random() > 0.1; // 90% uptime simulation
+            updateConnectionStatus(isOnline);
+        }, 5000);
+    </script>
+</body>
+</html>
